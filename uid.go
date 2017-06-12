@@ -26,6 +26,7 @@ type IDWorker struct {
 	lock          *sync.Mutex
 }
 
+//NewWorker renturn a id generator
 func NewWorker(workerid int64) (iw *IDWorker, err error) {
 	iw = new(IDWorker)
 	if workerid > MaxWorkerID || workerid < 0 {
@@ -38,6 +39,7 @@ func NewWorker(workerid int64) (iw *IDWorker, err error) {
 	return iw, nil
 }
 
+//NextID return a unique id
 func (iw *IDWorker) NextID() (id int64, err error) {
 	iw.lock.Lock()
 	defer iw.lock.Unlock()
@@ -59,15 +61,17 @@ func (iw *IDWorker) NextID() (id int64, err error) {
 
 	iw.lastTimeStamp = ct
 
-	id = iw.lastTimeStamp<<TimeStampShift | iw.workerID<<WorkerIDShift | iw.senquenceID
+	id = (iw.lastTimeStamp-CEpoch)<<TimeStampShift | iw.workerID<<WorkerIDShift | iw.senquenceID
 	return id, nil
 }
 
+//timeGen return current time
 func timeGen() (ct int64) {
 	ct = time.Now().UnixNano() / 1000 / 1000
 	return
 }
 
+//timeReGen wait until the next millisecond
 func timeReGen(last int64) int64 {
 	ct := timeGen()
 	for {

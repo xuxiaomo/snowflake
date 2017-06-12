@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	CEpoch        = 1497960000000
+	CEpoch        = 1482192000000
 	WorkerIDBits  = 10
 	SenquenceBits = 12
 

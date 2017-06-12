@@ -10,11 +10,13 @@ import (
 const (
 	CEpoch        = 1497960000000
 	WorkerIDBits  = 10
-	MaxWorkerID   = -1 ^ (-1 << WorkerIDBits)
 	SenquenceBits = 12
 
-	WorkerIDBitsMask = 0x3ff
-	SenquenceMask    = 0xfff
+	WorkerIDShift  = SenquenceBits
+	TimeStampShift = SenquenceBits + WorkerIDBits
+
+	MaxWorkerID   = -1 ^ (-1 << WorkerIDBits)
+	SenquenceMask = -1 ^ (-1 << SenquenceBits)
 )
 
 type IDWorker struct {
@@ -37,7 +39,28 @@ func NewWorker(workerid int64) (iw *IDWorker, err error) {
 }
 
 func (iw *IDWorker) NextID() (id int64, err error) {
+	iw.lock.Lock()
+	defer iw.lock.Unlock()
 
+	ct := timeGen()
+
+	if iw.lastTimeStamp > ct {
+		return 0, errors.New("Clock moved backwards, Refuse gen id")
+	}
+
+	if iw.lastTimeStamp == ct {
+		iw.senquenceID = (iw.senquenceID + 1) & SenquenceMask
+		if iw.senquenceID == 0 {
+			ct = timeReGen(iw.lastTimeStamp)
+		}
+	} else {
+		iw.senquenceID = 0
+	}
+
+	iw.lastTimeStamp = ct
+
+	id = iw.lastTimeStamp<<TimeStampShift | iw.workerID<<WorkerIDShift | iw.senquenceID
+	return id, nil
 }
 
 func timeGen() (ct int64) {
@@ -45,4 +68,14 @@ func timeGen() (ct int64) {
 	return
 }
 
-func timeReGen()
+func timeReGen(last int64) int64 {
+	ct := timeGen()
+	for {
+		if ct <= last {
+			ct = timeGen()
+		} else {
+			break
+		}
+	}
+	return ct
+}

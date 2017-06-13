@@ -26,7 +26,7 @@ type IDWorker struct {
 	lock          *sync.Mutex
 }
 
-//NewWorker renturn a id generator
+//NewWorker renturn an id generator
 func NewWorker(workerid int64) (iw *IDWorker, err error) {
 	iw = new(IDWorker)
 	if workerid > MaxWorkerID || workerid < 0 {

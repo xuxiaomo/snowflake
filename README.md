@@ -8,7 +8,7 @@ NewWorker renturn an unique id generator
     func (iw *IDWorker) NextID() (uid int64, err error)
 NextID return an unique id
 
-##example
+## example
     iw := NewWorker(1)
     id := iw.NextID()
 
